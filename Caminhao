@@ -1,0 +1,275 @@
+using System;
+using System.Linq;
+
+namespace Caminhao
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int maxEspacos = 0;
+            float maxCargaTotal = 0;
+            int oper1 = 0, oper2 = 0;
+            double[] caminhao = new double[0];
+            double[] caminhaoValores = new double[0];
+            int ultimoPacAdd = 0;
+            int seguro = 0;
+            double pagamentoSeguro = 0, pagamentoCarga = 0, pagCargaSeguro = 0, valorProdutos = 0, maxValorTotal = 0;
+            double maiorPesoExcedente = 0, maiorValorExcedente = 0;
+            int pacotesParada = 0, maiorQtdPacotesParada = 0, menorQtdPacotesParada = 0;
+            double pesoParada = 0, maiorQtdPesoParada = 0, menorQtdPesoParada = 0;
+
+            do // 1. Iniciar o Dia
+            {
+                Console.WriteLine("Bem vindo ao sistema de gerenciamento de carga de caminhões!\n");
+                Console.WriteLine("Digite o volume de carga em metros cubicos (Apenas numeros inteiros. Ex 3, 5, 7): ");
+                maxEspacos = int.Parse(Console.ReadLine());
+                seguro = maxEspacos * 10;
+                Console.Clear();
+                Console.WriteLine("Digite o peso maximo (Kg) de carga total de seu caminhão (Ex: 100; 150,50; 200): ");
+                maxCargaTotal = float.Parse(Console.ReadLine());
+                maxValorTotal = maxCargaTotal * 1.50;
+
+                caminhao = new double[maxEspacos];
+                caminhaoValores = new double[maxEspacos];
+
+                if (maxEspacos == 0 || maxCargaTotal == 0) Console.WriteLine("ERRO! REPETINDO O MENU!\n");
+
+            } while (maxEspacos == 0 || maxCargaTotal == 0);
+
+            while (oper1 != 4)
+            {
+                //Menu
+                Console.Clear();
+                Console.WriteLine("Precione a opção desejada:\n" +
+                    "[1] Realizar Parada\n" +
+                    "[2] Consultar Situação\n" +
+                    "[3] Listar Pacotes\n" +
+                    "[4] Finalizar o Dia\n");
+                oper1 = int.Parse(Console.ReadLine());
+
+                while (oper1 == 1) // 2. Realizar Parada
+                {
+                    Console.Clear();
+                    Console.WriteLine("Precione a opção desejada:\n" +
+                    "[1] Inserir Pacote\n" +
+                    "[2] Retirar Pacote \n" +
+                    "[3] Encerrar Parada\n");
+                    oper2 = int.Parse(Console.ReadLine());
+
+                    while (oper2 == 1) // Adicionando Pacote
+                    {
+                        Console.Clear();
+                        for (int i = 0; i < caminhao.Length; i++) 
+                        {
+                            if (caminhao[i] == 0)
+                            {
+                                Console.WriteLine($"Informe o peso do pacote no espaço '{i + 1}' (Peso deve conter entre 1kg e 99kg)");
+                                double pesoCargaAtual = double.Parse(Console.ReadLine());
+
+                                double pesoTest = pesoCargaAtual;
+                                for (int j = 0; j < caminhao.Length; j++) pesoTest += caminhao[j];
+
+                                if (maxCargaTotal >= pesoTest)
+                                {
+                                    if (pesoCargaAtual > seguro)
+                                    {
+                                        pagamentoSeguro = (pesoCargaAtual - seguro) * 0.80;
+                                        pagamentoCarga = pesoCargaAtual * 1.50;
+                                        pagCargaSeguro = pagamentoCarga + pagamentoSeguro;
+                                        Console.WriteLine($"\nO valor a pagar de sua carga é de R${pagamentoCarga} mais o seguro obrigatorio de R${pagamentoSeguro},\n" +
+                                            $"totalizando R${pagCargaSeguro}.\n" +
+                                            $"\nPrecione Enter para confirmar ou qualquer outra tecla para Cancelar!");
+                                        if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                        {
+                                            pacotesParada++;
+                                            pesoParada += pesoCargaAtual;
+                                            caminhao[i] = pesoCargaAtual;
+                                            caminhaoValores[i] = pagCargaSeguro;
+                                            ultimoPacAdd = i;
+                                            valorProdutos += pagCargaSeguro;
+                                            Console.WriteLine($"\nPacote Adicionado com Sucesso!");
+                                            if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                                break;
+                                        }
+                                        else break;
+                                    }
+
+                                    else
+                                    {
+                                        pagamentoCarga = pesoCargaAtual * 1.50;
+                                        Console.WriteLine($"\nO valor a pagar de sua carga é de R${pagamentoCarga} Precione Enter para confirmar ou qualquer outra tecla para Cancelar!");
+                                        if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                        {
+                                            pacotesParada++;
+                                            pesoParada += pesoCargaAtual;
+                                            caminhao[i] = pesoCargaAtual;
+                                            caminhaoValores[i] = pagamentoCarga;
+                                            ultimoPacAdd = i;
+                                            valorProdutos += pagamentoCarga;
+                                            Console.WriteLine($"\nPacote Adicionado com Sucesso!");
+                                            if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                                break;
+                                        }
+                                        else break;
+                                    }
+                                }
+                                else
+                                {
+                                    // Conferindo maior tentativa de peso/valor exedente durante o dia (Exercicio G/H)
+                                    Console.WriteLine("\nCaminhão passou da carga maxima, por favor adicione um pacote mais leve!");
+                                    if (pesoCargaAtual > maiorPesoExcedente)
+                                    {
+                                        maiorPesoExcedente = pesoCargaAtual;
+                                        maiorValorExcedente = pesoCargaAtual * 1.50;
+                                    }
+                                    if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                        break;
+                                }
+                                break;
+                            }
+
+                            if (i == caminhao.Length - 1)
+                            {
+
+                                Console.WriteLine("O caminhão esta com todos espaços lotados!");
+                                if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                    break;
+                            }
+                        }
+                        break;
+                    }
+
+                    while (oper2 == 2) // Removendo Pacote
+                    {
+                        Console.Clear();
+                        //Console.WriteLine("Removendo Pacote!\n");
+
+                        Console.WriteLine($"Você deseja remover o ultimo pacote adicionado caminhão? No espaço '{ultimoPacAdd+1}', com o peso de {caminhao[ultimoPacAdd]}Kg?\n" +
+                            $"Precione Enter para confirmar ou qualquer outra tecla para Cancelar!\n");
+
+                        if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                        {
+                            int i = ultimoPacAdd;
+                            valorProdutos -= caminhaoValores[i];
+                            caminhao[i] = 0;
+                            caminhaoValores[i] = 0;
+                            ultimoPacAdd--;
+                            Console.WriteLine("Pacote removido com sucesso!");
+                            if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                break;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Pacote NÃO removido!");
+                            if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                                break;
+                        }
+                    }
+
+                    if (oper2 == 3) // Encerrando Operação
+                    {
+
+                        //Maior e menor quantidade transportada durante em uma unica parada (Exercicio C/D)
+                        if (pacotesParada > maiorQtdPacotesParada) maiorQtdPacotesParada = pacotesParada;
+                        if (menorQtdPacotesParada == 0) menorQtdPacotesParada = pacotesParada;
+                        if (pacotesParada < menorQtdPacotesParada) menorQtdPacotesParada = pacotesParada;
+
+                        //Maior e menor peso transportado em uma unica parada (Exercicio E/F)
+                        if (pesoParada > maiorQtdPesoParada) maiorQtdPesoParada = pesoParada;
+                        if (menorQtdPesoParada == 0) menorQtdPesoParada = pesoParada;
+                        if (pesoParada < menorQtdPesoParada) menorQtdPesoParada = pesoParada;
+
+                        pesoParada = 0; 
+                        pacotesParada = 0;
+                        Console.WriteLine("Voltando para o menu principal!");
+                        oper1 = 0;
+                    }  
+                }
+
+                if (oper1 == 2) // 3. Consultar Situação
+                {
+                    // Contas de Carga/Kg
+                    double pesoCargaFinal = 0;
+                    for (int i = 0; i < caminhao.Length; i++) pesoCargaFinal += caminhao[i];
+                    double espacoKgVago = maxCargaTotal - pesoCargaFinal;
+
+                    // Contas de pacotes totais
+                    int qtdPacotesAtuais = 0;
+                    for (int i = 0; i < caminhao.Length; i++) if (caminhao[i] != 0) qtdPacotesAtuais++;
+                    float espagoPacotesVago = maxEspacos - qtdPacotesAtuais;
+
+                    Console.Clear();
+                    Console.WriteLine($"Relatorio:\n" +
+                        $"Carga Maxima Suportada: {maxCargaTotal}Kg \n" + //Peso maximo KG suportado
+                        $"Carga Atual: {pesoCargaFinal}Kg \n" +
+                        $"Espaço Vago de Carga: {espacoKgVago}Kg \n" +
+                        $"\n" +
+                        $"Quantidade Maxima de Pacotes: {maxEspacos} Un \n" + // Unidades de Metros Cubicos m³ suportados
+                        $"Pacotes Carregados Atualmente: {qtdPacotesAtuais} Un \n" +
+                        $"Espaço Vago para Pacotes: {espagoPacotesVago} Un \n" +
+                        $"\n" +
+                        $"Valor Padrão Maximo: R${maxValorTotal} \n" + // peso maximo X R$ 1,50
+                        $"Valor Transportado Atual: R${valorProdutos} \n" +
+                        $"Valor Vago para Transporte: R${maxValorTotal - valorProdutos} \n" +
+                        $"\n" +
+                        $"Precione enter para voltar ao menu principal!\n");
+
+                    if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                    {
+                        oper1 = 0;
+                    }
+                }
+
+                while (oper1 == 3) // 4. Listar Pacotes 
+                {
+                    int cargaTotalAtual = 0;
+                    for (int i = 0; i < caminhao.Length; i++) if (caminhao[i] != 0) cargaTotalAtual++; // Somando quantas cargas tem no momento
+
+                    Console.Clear();
+                    Console.Write($"O caminhão tem a capacidade de {maxEspacos}m³ com apenas {cargaTotalAtual} pacotes carregados.\n");
+
+                    for (int i = 0; i < caminhao.Length; i++)
+                    {
+                        Console.WriteLine($"" +
+                            $"Espaço = {i + 1}  \n" +
+                            $"Carga = {caminhao[i]}Kg\n");
+                    }
+                    
+                    Console.WriteLine("Precione enter para voltar ao menu principal!\n");
+                    if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                    {
+                        oper1 = 0;
+                    }
+                }
+            }
+
+            // 5. Finalizar o Dia
+            Console.Clear();
+            Console.WriteLine("Finalizando o Dia!\n");
+
+            // 6. Gerando o Relatorio
+
+            // Conferindo carga mais pesada e mais leve (Exercicio A/B)
+            double cargaMaisPesada = caminhao.Max();
+            double cargaMaisLeve = 0;
+            for (int i = 0; i < caminhao.Length; i++)
+            {
+                if (cargaMaisLeve == 0) cargaMaisLeve = caminhao[i];
+                if (caminhao[i] != 0 && caminhao[i] < cargaMaisLeve) cargaMaisLeve = caminhao[i];
+            }
+
+            Console.WriteLine($"Relatorio Final:\n" +
+                        $"[A] Menor peso de pacote individual transportado durante o dia: {cargaMaisLeve}Kg \n" +
+                        $"[B] Maior peso de pacote individual transportado durante o dia: {cargaMaisPesada}Kg \n" +
+                        $"[C] Menor quantidade de pacotes embarcados em uma partida: {menorQtdPacotesParada} Un. \n" +
+                        $"[D] Maior quantidade de pacotes embarcados em uma partida: {maiorQtdPacotesParada} Un. \n" +
+                        $"[E] Menor quantidade total de peso no caminhão ao encerrar parada: {menorQtdPesoParada}Kg \n" +
+                        $"[F] Maior quantidade total de peso no caminhão ao encerrar parada: {maiorQtdPesoParada}Kg \n" +
+                        $"[G] Maior TENTATIVA DE peso excedente durante todo o dia: {maiorPesoExcedente}Kg \n" +
+                        $"[H] Maior TENTATIVA DE valor excedente durante todo o dia:: {maiorValorExcedente}Kg \n" +
+                        $"\n" +
+                        $"Boa Noite!");
+        }
+    }
+}
